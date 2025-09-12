@@ -18,3 +18,14 @@
     > Instructors can Accept, Reject or Delete workshops based on their preference, also they can postpone a workshop based on coordinators request.
 
 __NOTE__: Check docs/Getting_Started.md for more info.
+
+# Workshop Booking UI/UX Enhancement
+By SANSKAR KUMAWAT
+
+:- What I Did? -
+- Replaced the old table layout with "modern, dynamic cards" for better readability.  
+- Added a "hero section" with a clear title and description.  
+- Made the "booking modal" work with the new card layout.  
+- Ensured "mobile-friendly design" using CSS media queries.  
+- Improved "visual hierarchy": highlighted workshop names, duration, and buttons.  
+- Added subtle "hover effects" for better interactivity.  
