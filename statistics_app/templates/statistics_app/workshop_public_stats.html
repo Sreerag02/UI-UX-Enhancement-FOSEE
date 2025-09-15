@@ -3,42 +3,35 @@
 {% block title %} Statistics {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
+<div class="container-fluid py-4" style="background: linear-gradient(120deg, #f6d365 0%, #fda085 100%); min-height: 90vh;">
     <div class="row">
-        <div class="col-md-3">
+        <div class="col-md-4 col-lg-3 mb-4">
             <form method="GET">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="row">
-                            <div class="col-md-8">
-                                <h3><u>Filters</u></h3>
-                            </div>
-                            <div class="col-md-4">
-                                <a href="{% url 'statistics_app:public' %}" class="btn btn-outline-info">
-                                    <i class="fa fa-times"></i>&nbsp;Clear
-                                </a>
-                            </div>
-                        </div>
+                <div class="card shadow-lg">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0"><span class="material-icons" style="vertical-align: middle;">filter_alt</span> Filters</h3>
+                        <a href="{% url 'statistics_app:public' %}" class="btn btn-outline-info btn-sm">
+                            <i class="fa fa-times"></i> Clear
+                        </a>
                     </div>
                     <div class="card-body">
-                        <div>From date: {{form.from_date}}</div>
-                        <div>To date: {{form.to_date}}</div>
-                        <div>Workshop: {{form.workshop_type}}</div>
-                        <div>State: {{form.state}}</div>
-                        <div>{{form.sort.help_text}}: {{form.sort}}</div>
+                        <div class="form-group mb-3">From date: {{form.from_date}}</div>
+                        <div class="form-group mb-3">To date: {{form.to_date}}</div>
+                        <div class="form-group mb-3">Workshop: {{form.workshop_type}}</div>
+                        <div class="form-group mb-3">State: {{form.state}}</div>
+                        <div class="form-group mb-3">{{form.sort.help_text}}: {{form.sort}}</div>
                         {% if request.user.is_authenticated %}
-                        <div>{{form.show_workshops.help_text}}: {{form.show_workshops}}</div>
+                        <div class="form-group mb-3">{{form.show_workshops.help_text}}: {{form.show_workshops}}</div>
                         {% endif %}
-                        <br>
-                        <div class="row justify-content-center">
-                            <div class="col-md-4">
-                                <button type="submit" class="btn btn-success">
-                                    <i class="fa fa-eye"></i>&nbsp;View
+                        <div class="row mt-4">
+                            <div class="col-6">
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="fa fa-eye"></i> View
                                 </button>
                             </div>
-                            <div class="col-md-6">
-                                <button type="submit" class="btn btn-info" name="download" value="download">
-                                    <i class="fa fa-download"></i>&nbsp;Download
+                            <div class="col-6">
+                                <button type="submit" class="btn btn-info w-100" name="download" value="download">
+                                    <i class="fa fa-download"></i> Download
                                 </button>
                             </div>
                         </div>
@@ -46,55 +39,58 @@
                 </div>
             </form>
         </div>
-        <div class="col">
-            <div class="row">
+        <div class="col-md-8 col-lg-9">
+            <div class="row mb-3">
                 <div class="col-md-6">
                     {% include "statistics_app/paginator.html" %}
                 </div>
                 <div class="col-md-3">
-                    <button class="btn btn-info" id="state_graph">
-                        <i class="fa fa-bar-chart"></i>&nbsp;State chart
+                    <button class="btn btn-info w-100" id="state_graph">
+                        <i class="fa fa-bar-chart"></i> State chart
                     </button>
                 </div>
                 <div class="col-md-3">
-                    <button class="btn btn-info" id="type_graph">
-                        <i class="fa fa-bar-chart"></i>&nbsp;Workshops chart
+                    <button class="btn btn-info w-100" id="type_graph">
+                        <i class="fa fa-bar-chart"></i> Workshops chart
                     </button>
                 </div>
             </div>
-            <table class="table table-responsive-sm">
-                <thead>
-                    <tr>
-                        <th>Sr No.</th>
-                        <th>Coordinator Name</th>
-                        <th>Institute Name</th>
-                        <th>Instructor Name</th>
-                        <th>Workshop Name</th>
-                        <th>Workshop Date</th>
-                    </tr>
-                </thead>
-                {% csrf_token %}
-                {% for workshop in objects %}
-                    <tbody>
-                        <tr>
-                            <td>{{ forloop.counter0|add:objects.start_index}}</td>
-                            <td>{{ workshop.coordinator.get_full_name | capfirst }}</td>
-                            <td>{{ workshop.coordinator.profile.institute | capfirst }}</td>
-                            <td>{{ workshop.instructor.get_full_name | capfirst }}</td>
-                            <td>{{ workshop.workshop_type.name }}</td>
-                            <td>{{ workshop.date | date}}</td>
-                        </tr>
-                    </tbody>
-                {% endfor %}
-            </table>
+            <div class="card shadow-lg mb-4">
+                <div class="card-body p-0">
+                    <table class="table table-responsive-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th>Sr No.</th>
+                                <th>Coordinator Name</th>
+                                <th>Institute Name</th>
+                                <th>Instructor Name</th>
+                                <th>Workshop Name</th>
+                                <th>Workshop Date</th>
+                            </tr>
+                        </thead>
+                        {% csrf_token %}
+                        {% for workshop in objects %}
+                            <tbody>
+                                <tr>
+                                    <td>{{ forloop.counter0|add:objects.start_index}}</td>
+                                    <td>{{ workshop.coordinator.get_full_name | capfirst }}</td>
+                                    <td>{{ workshop.coordinator.profile.institute | capfirst }}</td>
+                                    <td>{{ workshop.instructor.get_full_name | capfirst }}</td>
+                                    <td>{{ workshop.workshop_type.name }}</td>
+                                    <td>{{ workshop.date | date}}</td>
+                                </tr>
+                            </tbody>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
             {% include "statistics_app/paginator.html" %}
         </div>
     </div>
-</div>
-
-<!-- The Modal -->
-<div id="dialog" title="Workshops Statistics">
-    <canvas id="myChart"></canvas>
+    <!-- The Modal -->
+    <div id="dialog" title="Workshops Statistics" style="display:none;">
+        <canvas id="myChart"></canvas>
+    </div>
 </div>
 
 <script type="text/javascript">
@@ -114,26 +110,39 @@
         var ctx = document.getElementById('myChart').getContext('2d');
         if(chart) chart.destroy();
         chart = new Chart(ctx, {
-            // The type of chart we want to create
             type: 'bar',
-
-            // The data for our dataset
             data: {
                 labels: labels,
                 datasets: [{
                     data: data,
                     label: graph_name,
-                    backgroundColor: 'rgb(255, 99, 132)',
-                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(37,117,252,0.7)',
+                    borderColor: 'rgba(37,117,252,1)',
                 }]
             },
-            // Configuration options go here
-            options: {}
+            options: {
+                responsive: true,
+                legend: { display: false },
+                scales: {
+                    xAxes: [{
+                        gridLines: { display: false },
+                        ticks: { fontColor: '#2575fc' }
+                    }],
+                    yAxes: [{
+                        gridLines: { color: '#eee' },
+                        ticks: { fontColor: '#2575fc', beginAtZero: true }
+                    }]
+                }
+            }
         });
         $("#dialog").dialog({
             width: 900,
-            height: 500
+            height: 500,
+            modal: true,
+            show: { effect: "fade", duration: 400 },
+            hide: { effect: "fade", duration: 400 }
         });
+        $("#dialog").show();
     }
 </script>
 
