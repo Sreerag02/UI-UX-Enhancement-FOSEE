@@ -5,44 +5,65 @@
 {% endblock %}
 
 {% block content %}
-
-<div class="container-fluid">
+<div class="container-fluid py-4" style="background: linear-gradient(120deg, #f6d365 0%, #fda085 100%); min-height: 80vh;">
     <div class="row">
-        <div class="col-md-2">
-            <ul class="nav nav-pills list-group">
-                {% for team in all_teams %}
-                    <li class="nav-item">
-                        <a href="{% url 'statistics_app:team' team.id %}" class="nav-link list-group-item">
-                            Team {{forloop.counter}}
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-lg">
+                <div class="card-header bg-gradient-info text-white" style="border-radius:1em 1em 0 0;">
+                    <span class="material-icons mr-2">groups</span>
+                    <h5 class="mb-0 d-inline">Teams</h5>
+                </div>
+                <ul class="nav nav-pills flex-column p-3">
+                    {% for team in all_teams %}
+                        <li class="nav-item mb-2">
+                            <a href="{% url 'statistics_app:team' team.id %}" class="nav-link btn btn-outline-info w-100 text-left" style="border-radius:0.7em; font-weight:600;">
+                                <span class="material-icons" style="vertical-align:middle;">group</span> Team {{forloop.counter}}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
-        <div class="col-md-8">
-            <br>
-            <canvas id="myChart"></canvas>
+        <div class="col-md-9">
+            <div class="card shadow-lg">
+                <div class="card-header bg-gradient-info text-white" style="border-radius:1em 1em 0 0;">
+                    <span class="material-icons mr-2">bar_chart</span>
+                    <h5 class="mb-0 d-inline">Team Members Workshops</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="myChart"></canvas>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 <script>
     var ctx = document.getElementById('myChart').getContext('2d');
     var chart = new Chart(ctx, {
-        // The type of chart we want to create
         type: 'bar',
-
-        // The data for our dataset
         data: {
             labels: {{team_labels|safe}},
             datasets: [{
                 data: {{ws_count|safe}},
                 label: "Team Members Workshops",
-                backgroundColor: 'rgb(255, 99, 132)',
-                borderColor: 'rgb(255, 99, 132)',
+                backgroundColor: 'rgba(37,117,252,0.7)',
+                borderColor: 'rgba(37,117,252,1)',
             }]
         },
-        // Configuration options go here
-        options: {}
+        options: {
+            responsive: true,
+            legend: { display: false },
+            scales: {
+                xAxes: [{
+                    gridLines: { display: false },
+                    ticks: { fontColor: '#2575fc' }
+                }],
+                yAxes: [{
+                    gridLines: { color: '#eee' },
+                    ticks: { fontColor: '#2575fc', beginAtZero: true }
+                }]
+            }
+        }
     });
 </script>
 {% endblock %}

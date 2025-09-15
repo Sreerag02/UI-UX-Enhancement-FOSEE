@@ -37,75 +37,109 @@
 
 
 {% block content %}
-	<div class="container">
-	 	<div class="row">
-			<div class="col-md-6" align="left" >
-				  <fieldset data-mini="true">
-				    <label for="radio-1">Instructor Statistics </label>
-				    <input type="radio" name="radio-1" id="radio-1" value="IP">
-				    <label for="radio-2">Coordinator Statistics</label>
-				    <input type="radio" name="radio-1" id="radio-2" value="CP">
-				  </fieldset>
+<div class="container py-4">
+	<div class="row justify-content-center">
+		<div class="col-lg-8">
+			<div class="card shadow-lg mb-4">
+				<div class="card-header bg-gradient-info text-white d-flex align-items-center" style="border-radius:1em 1em 0 0;">
+					<span class="material-icons mr-2">bar_chart</span>
+					<h4 class="mb-0">Profile Statistics</h4>
+				</div>
+				<div class="card-body">
+					<div class="d-flex justify-content-center mb-4">
+						<div class="btn-group btn-group-toggle" data-toggle="buttons">
+							<label class="btn btn-outline-info active" id="label-instructor">
+								<input type="radio" name="radio-1" id="radio-1" value="IP" autocomplete="off"> Instructor Statistics
+							</label>
+							<label class="btn btn-outline-info ml-2" id="label-coordinator">
+								<input type="radio" name="radio-1" id="radio-2" value="CP" autocomplete="off"> Coordinator Statistics
+							</label>
+						</div>
+					</div>
+					<!-- Instructor Data Table -->
+					<div id="instructor_data" style="display: none;">
+						<table class="table table-hover table-responsive-sm mb-0">
+							<thead class="bg-gradient-info text-white">
+								<tr>
+									<th>#</th>
+									<th>Username</th>
+									<th>Full Name</th>
+									<th>Institute Name</th>
+									<th>Phone Number</th>
+									<th>Workshop Count</th>
+								</tr>
+							</thead>
+							{% csrf_token %}
+							{% for profile_data in instructor_data %}
+							<tbody>
+								<tr>
+									<td>{{ forloop.counter}}</td>
+									<td>{{ profile_data.profile.user}}</td>
+									<td>{{ profile_data.profile.user.first_name}} {{ profile_data.profile.user.last_name}}</td>
+									<td>{{ profile_data.profile.institute}}</td>
+									<td>{{ profile_data.profile.phone_number}}</td>
+									<td>{{ profile_data.count}}</td>
+								</tr>
+							</tbody>
+							{% endfor %}
+						</table>
+					</div>
+					<!-- Coordinator Data Table -->
+					<div id="coordinator_data" style="display: none;">
+						<table class="table table-hover table-responsive-sm mb-0">
+							<thead class="bg-gradient-info text-white">
+								<tr>
+									<th>#</th>
+									<th>Name</th>
+									<th>Institute Name</th>
+									<th>Phone Number</th>
+									<th>Registration Date</th>
+									<th>Workshop Count</th>
+								</tr>
+							</thead>
+							{% csrf_token %}
+							{% for profile_data in coordinator_data %}
+							<tbody>
+								{% if profile_data.count > 0 %}
+								<tr>
+									<td>{{ forloop.counter }}</td>
+									<td><a href="{{ URL_ROOT }}/view_comment_profile/{{ profile_data.profile.user.id }}" class="text-info font-weight-bold">
+										{{ profile_data.profile.user.get_full_name }}</a></td>
+									<td>{{ profile_data.profile.institute}}</td>
+									<td>{{ profile_data.profile.phone_number}}</td>
+									<td>{{ profile_data.profile.user.date_joined | date}}</td>
+									<td>{{ profile_data.count}}</td>
+								</tr>
+								{% endif %}
+							</tbody>
+							{% endfor %}
+						</table>
+					</div>
+				</div>
 			</div>
-			<br>
-			<br>
-			<!-- Instructor Data Table -->
-				<table class="table" id="instructor_data" style="display: none">
-					<thead>
-						<tr>
-							<th></th>
-							<th>username</th>
-							<th>Full Name</th>
-							<th>Institute Name</th>
-							<th>Phone Number</th>
-							<th>Workshop Count</th>
-						</tr>
-					</thead>
-					{% csrf_token %}
-					{% for profile_data in instructor_data %}
-						<tbody>
-							<tr>
-								<td>{{ forloop.counter}}</td>
-								<td>{{ profile_data.profile.user}}</td>
-								<td>{{ profile_data.profile.user.first_name}} {{ profile_data.profile.user.last_name}}</td>
-								<td>{{ profile_data.profile.institute}}</td>
-								<td>{{ profile_data.profile.phone_number}}</td>
-								<td>{{ profile_data.count}}</td>
-							</tr>
-						</tbody>
-					{% endfor %}
-				</table>
-
-			<!-- Coordinator Data Table -->
-				<table class="table" id="coordinator_data" style="display: none">
-					<thead>
-						<tr>
-							<th></th>
-							<th>Name</th>
-							<th>Institute Name</th>
-							<th>Phone Number</th>
-							<th>Registration Date</th>
-							<th>Workshop Count</th>
-						</tr>
-					</thead>
-					{% csrf_token %}
-					{% for profile_data in coordinator_data %}
-						<tbody>
-					{% if profile_data.count > 0 %}
-							<tr>
-								<td>{{ forloop.counter }}</td>
-								<td><a href="{{ URL_ROOT }}/view_comment_profile/{{ profile_data.profile.user.id }}">
-								{{ profile_data.profile.user.get_full_name }}</a></td>
-								<td>{{ profile_data.profile.institute}}</td>
-								<td>{{ profile_data.profile.phone_number}}</td>
-								<td>{{ profile_data.profile.user.date_joined | date}}</td>
-								<td>{{ profile_data.count}}</td>
-							</tr>
-					{% endif %}
-						</tbody>
-					{% endfor %}
-				</table>
 		</div>
 	</div>
-
+</div>
+<script>
+	$(document).ready(function() {
+		// Default: show instructor table
+		$('#instructor_data').show();
+		$('#radio-1').prop('checked', true);
+		$('#label-instructor').addClass('active');
+		$('#label-coordinator').removeClass('active');
+		$('input[type=radio][name=radio-1]').change(function() {
+			if (this.value == "CP") {
+				$('#instructor_data').hide();
+				$('#coordinator_data').show();
+				$('#label-instructor').removeClass('active');
+				$('#label-coordinator').addClass('active');
+			} else {
+				$('#instructor_data').show();
+				$('#coordinator_data').hide();
+				$('#label-instructor').addClass('active');
+				$('#label-coordinator').removeClass('active');
+			}
+		});
+	});
+</script>
 {% endblock %}

@@ -1,0 +1,106 @@
+/* Advanced Statistics Page Styles */
+body {
+    background: linear-gradient(120deg, #f6d365 0%, #fda085 100%);
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+}
+
+.card {
+    border-radius: 1em;
+    box-shadow: 0 8px 32px rgba(44, 62, 80, 0.12);
+    border: none;
+    transition: box-shadow 0.3s;
+}
+
+.card:hover {
+    box-shadow: 0 12px 40px rgba(44, 62, 80, 0.18);
+}
+
+.card-header {
+    background: linear-gradient(90deg, #2575fc 0%, #6a11cb 100%);
+    color: #fff;
+    border-radius: 1em 1em 0 0;
+    padding: 1em 1.5em;
+}
+
+.card-header h3 {
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.card-body {
+    background: #fff;
+    border-radius: 0 0 1em 1em;
+    padding: 1.5em;
+}
+
+.btn {
+    border-radius: 0.7em;
+    font-weight: 600;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(44, 62, 80, 0.10);
+}
+
+.btn-success {
+    background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
+    border: none;
+    color: #fff;
+}
+
+.btn-success:hover {
+    background: linear-gradient(90deg, #38f9d7 0%, #43e97b 100%);
+    box-shadow: 0 4px 16px rgba(67, 233, 123, 0.18);
+}
+
+.btn-info {
+    background: linear-gradient(90deg, #2575fc 0%, #6a11cb 100%);
+    border: none;
+    color: #fff;
+}
+
+.btn-info:hover {
+    background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
+    box-shadow: 0 4px 16px rgba(37, 117, 252, 0.18);
+}
+
+.table {
+    background: #fff;
+    border-radius: 1em;
+    box-shadow: 0 4px 16px rgba(44, 62, 80, 0.08);
+    overflow: hidden;
+}
+
+.table thead th {
+    background: linear-gradient(90deg, #2575fc 0%, #6a11cb 100%);
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    padding: 1em;
+}
+
+.table tbody td {
+    padding: 0.9em;
+    border-top: 1px solid #f0f0f0;
+    font-size: 1em;
+}
+
+.table-responsive-sm {
+    border-radius: 1em;
+    overflow: hidden;
+}
+
+#dialog {
+    background: #fff;
+    border-radius: 1em;
+    box-shadow: 0 8px 32px rgba(44, 62, 80, 0.18);
+    padding: 2em;
+}
+
+@media (max-width: 900px) {
+    .card, .table, #dialog {
+        border-radius: 0.5em;
+        padding: 1em;
+    }
+    .card-header, .card-body {
+        padding: 1em;
+    }
+}
