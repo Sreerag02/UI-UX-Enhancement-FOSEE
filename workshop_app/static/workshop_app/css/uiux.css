@@ -1,0 +1,138 @@
+/* uiux.css - custom UI/UX styles for FOSSEE workshop_booking
+   Place at: workshop_app/static/workshop_app/css/uiux.css
+*/
+
+/* --- Global tokens --- */
+:root{
+  --primary: #0d6efd;
+  --muted: #6c757d;
+  --page-bg: #f7f9fc;
+  --card-bg: #ffffff;
+  --max-width: 1100px;
+  --radius: 12px;
+  --shadow: 0 8px 24px rgba(15,23,42,0.08);
+  --small-shadow: 0 3px 10px rgba(15,23,42,0.04);
+  --gap: 1rem;
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+html,body{
+  height:100%;
+  font-family: var(--font-sans);
+  background: var(--page-bg);
+  color: #0f1724;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* --- Container --- */
+.container-main{
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+/* --- Navbar tweaks --- */
+.navbar-brand{
+  font-weight:700;
+  letter-spacing:0.2px;
+  font-size:1.05rem;
+}
+.nav-link{
+  font-size:0.95rem;
+}
+.navbar-dark .nav-link:hover,
+.navbar-dark .nav-link:focus{
+  text-decoration: underline;
+}
+
+/* --- Hero / content area --- */
+.base-content{
+  padding-top: 1rem;
+  padding-bottom: 2.5rem;
+}
+
+/* --- Card style for workshops / lists --- */
+.workshop-card{
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 1rem;
+  box-shadow: var(--small-shadow);
+  transition: transform .16s ease, box-shadow .16s ease;
+  border: 1px solid rgba(15,23,42,0.03);
+}
+.workshop-card:hover{
+  transform: translateY(-6px);
+  box-shadow: var(--shadow);
+}
+
+/* Card title and meta */
+.workshop-card h5{
+  font-size: 1.05rem;
+  margin-bottom: 0.35rem;
+  color: #0b1220;
+}
+.workshop-card .meta{
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* Buttons */
+.btn-primary{
+  background: var(--primary);
+  border: none;
+  border-radius: 8px;
+  padding: .45rem .85rem;
+  font-weight:600;
+}
+.btn-outline-secondary{
+  border-radius: 8px;
+  padding: .35rem .75rem;
+}
+
+/* --- Utility spacing for small screens --- */
+.section-heading{
+  margin-bottom: .6rem;
+  font-weight:600;
+}
+.lead-text{
+  color: var(--muted);
+  margin-bottom: 1rem;
+}
+
+/* --- Responsive rules --- */
+@media (max-width: 767px){
+  .container-main{
+    padding: 1rem;
+  }
+  .nav-link{ font-size:0.95rem; }
+  .navbar-brand{ font-size:1rem; }
+  .workshop-card{ padding: .9rem; }
+}
+
+/* --- Accessibility / focus states --- */
+a:focus, button:focus {
+  outline: 3px solid rgba(13,110,253,0.14);
+  outline-offset: 3px;
+}
+
+/* --- Tiny helper for images --- */
+.img-fluid.rounded{
+  border-radius: 8px;
+  display:block;
+}
+
+/* --- Footer --- */
+.footer{
+  background: #fff;
+  border-top: 1px solid rgba(15,23,42,0.04);
+}
+.footer .container{
+  padding: 1rem 0;
+}
+
+/* --- Smooth utilities --- */
+.sr-only-mobile{ display:none; }
+@media (max-width: 576px){
+  .sr-only-mobile{ display:inline; font-size:0.95rem; color:var(--muted); }
+}

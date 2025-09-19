@@ -10,43 +10,63 @@
         {% endblock %}
     </title>
 
+    {# jQuery (keep existing) #}
     <script src="{% static 'workshop_app/js/jquery-3.4.1.min.js' %}"></script>
-    <script src="{% static 'workshop_app/js/bootstrap.min.js' %}"></script>
-    <script src="{% static 'workshop_app/js/popper.min.js' %}"></script>
+
+    {# Keep toastr & other libs used by app #}
     <script src="{% static 'workshop_app/js/toastr.min.js' %}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 
-
     {% block extra-dependencies %}
     {% endblock %}
 
-    <link rel="stylesheet" href="{% static 'workshop_app/css/bootstrap.min.css' %}">
+    {# Google Font (Inter) #}
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    {# Bootstrap 5 CSS (CDN) #}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    {# Toastr CSS and existing base styles (keep) #}
     <link rel="stylesheet" href="{% static 'workshop_app/css/toastr.min.css' %}">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'workshop_app/css/base.css' %}" type="text/css"/>
     <link rel="stylesheet" href="{% static 'workshop_app/css/font-awesome.css' %}" type="text/css"/>
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
 
+    {# NEW: custom UI/UX stylesheet - add this file in static css folder #}
+    <link rel="stylesheet" href="{% static 'workshop_app/css/uiux.css' %}" type="text/css"/>
+
     {% block extra-custom-scripts %}
     {% endblock %}
+
+    {# small inline style fallback for navbar-toggler-icon contrast if required #}
+    <style>
+      /* ensure the default toggler icon is visible on dark navbar */
+      .navbar-dark .navbar-toggler-icon {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255,255,255,0.85)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+      }
+    </style>
 
 </head>
 
 <body>
 {% block header %}
-    <nav class="navbar navbar-dark navbar-expand-lg bg-dark fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top" aria-label="Main navigation">
+      <div class="container">
         {% if user.is_authenticated %}
-        <a class="navbar-brand text-white" href="{% url 'workshop_app:index' %}">FOSSEE Workshops</a>
+          <a class="navbar-brand fw-bold" href="{% url 'workshop_app:index' %}">FOSSEE Workshops</a>
         {% else %}
-        <a class="navbar-brand text-white" href="{{request.scheme}}://{{request.get_host}}">FOSSEE Workshops</a>
+          <a class="navbar-brand fw-bold" href="{{request.scheme}}://{{request.get_host}}">FOSSEE Workshops</a>
         {% endif %}
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
+
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
                     <a class="nav-link text-white" href="/">
                         Home
@@ -57,65 +77,65 @@
                         Workshop Statistics
                     </a>
                 </li>
-            </ul>
-            {% if user.is_authenticated %}
-            <ul class="navbar-nav mr-auto">
-                {% if request.user|has_group:"instructor" %}
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="{% url 'statistics_app:team' %}">
-                        Team Statistics
-                    </a>
-                </li>
-                {% endif %}
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="{% url 'workshop_app:workshop_status_instructor' %}">
-                        Workshop Status
-                    </a>
-                </li>
-                {% if not request.user|has_group:"instructor" %}
+                {% if user.is_authenticated %}
+                    {% if request.user|has_group:"instructor" %}
                     <li class="nav-item">
-                        <a class="nav-link text-white" href="{% url 'workshop_app:propose_workshop' %}">
-                            Propose Workshop
+                        <a class="nav-link text-white" href="{% url 'statistics_app:team' %}">
+                            Team Statistics
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'workshop_app:workshop_status_instructor' %}">
+                            Workshop Status
+                        </a>
+                    </li>
+                    {% if not request.user|has_group:"instructor" %}
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="{% url 'workshop_app:propose_workshop' %}">
+                                Propose Workshop
+                            </a>
+                        </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'workshop_app:workshop_type_list' %}">
+                            Workshop Types
                         </a>
                     </li>
                 {% endif %}
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="{% url 'workshop_app:workshop_type_list' %}">
-                        Workshop Types
-                    </a>
-                </li>
             </ul>
-            <div class="my-2 my-lg-0">
-                <ul class="navbar-nav mr-auto">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdown" role="button"
-                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                           <span class="material-icons" style="vertical-align: middle">account_circle</span>
-                            <p style="display: inline; vertical-align: middle">
-                                {{user.get_full_name|title}}
-                            </p>
-                        </a>
-                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <a class="dropdown-item" href="{% url 'workshop_app:view_own_profile' %}">Profile</a>
-                            <a class="dropdown-item" href="{% url 'password_change' %}">
-                                 Change Password
-                            </a>
-                            <a class="dropdown-item" href="{% url 'workshop_app:logout' %}">Logout</a>
-                        </div>
-                    </li>
-                </ul>
+
+            {% if user.is_authenticated %}
+            <div class="d-flex align-items-center ms-3">
+                <div class="dropdown">
+                    <a class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" href="#" id="navbarDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="material-icons me-1" style="vertical-align: middle">account_circle</span>
+                        <span class="d-none d-lg-inline">{{ user.get_full_name|title }}</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="{% url 'workshop_app:view_own_profile' %}">Profile</a></li>
+                        <li><a class="dropdown-item" href="{% url 'password_change' %}">Change Password</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'workshop_app:logout' %}">Logout</a></li>
+                    </ul>
+                </div>
             </div>
             {% endif %}
         </div>
+      </div>
     </nav>
 {% endblock %}
 
-<div class="base-content">
+{# add a small spacer so fixed-top navbar doesn't overlap content #}
+<div style="height:70px;"></div>
+
+<div class="container container-main base-content">
     {% block content %}
         <h1>Base Template Content. Please override me</h1>
     {% endblock %}
 </div>
 
+{# Toastr messages #}
 <script>
     {% if messages %}
         {% for message in messages %}
@@ -124,12 +144,31 @@
     {% endif %}
 </script>
 
+{# Smooth scroll for internal anchors (enhances UX) #}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+    anchor.addEventListener('click', function(e) {
+      var target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+});
+</script>
+
+{# Bootstrap 5 bundle (includes Popper) - placed at end of body #}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
-<footer class="footer">
+
+<footer class="footer bg-light py-3 mt-4">
     {% block footer %}
-       <div class="container">
+       <div class="container text-center small text-muted">
            Developed by FOSSEE group, IIT Bombay
-       </div> 
+       </div>
     {% endblock %}
 </footer>
 </html>
