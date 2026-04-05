@@ -1,35 +1,146 @@
 {% extends 'workshop_app/base.html' %}
 
-	{% block title %}
-		Register
-	{% endblock %}
+{% block title %}Register{% endblock %}
 
 {% block content %}
+<div class="container" style="max-width:560px;padding-top:2rem;">
 
-	<style type="text/css">
-    	label.required::after {
-    	content: "*";
-    	color: red;
-		}
+    <div class="text-center" style="margin-bottom:1.5rem;">
+        <span class="material-icons" style="font-size:2.5rem;color:var(--primary)">person_add</span>
+        <h2 style="margin-top:0.5rem;">Coordinator Registration</h2>
+        <p style="color:var(--text-muted);font-size:0.9rem;">Create your FOSSEE account to propose workshops</p>
+    </div>
 
-		.errorlist {
-      color: red;
+    <div class="card animate-in">
+        <div class="card-body">
+
+            {% if form.errors %}
+            <div class="alert alert-danger" role="alert" style="margin-bottom:1rem;">
+                <i class="fa fa-exclamation-circle"></i>&nbsp;
+                Please correct the errors below.
+            </div>
+            {% endif %}
+
+            <form method="post" novalidate aria-label="Registration form">
+                {% csrf_token %}
+
+                <style>
+                    label.required::after { content: " *"; color: var(--danger); }
+                    .errorlist { color: var(--danger); font-size: 0.82rem; margin: 0.2rem 0 0; padding: 0; list-style: none; }
+                    .field-wrap { margin-bottom: 1rem; }
+                    .field-wrap input, .field-wrap select { width: 100%; }
+                    .field-hint { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem; }
+                </style>
+
+                <div class="field-wrap">
+                    <label for="{{ form.username.id_for_label }}" class="required">Username</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}<ul class="errorlist">{% for e in form.username.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                    <p class="field-hint">Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.</p>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                    <div class="field-wrap">
+                        <label for="{{ form.first_name.id_for_label }}" class="required">First Name</label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}<ul class="errorlist">{% for e in form.first_name.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                    </div>
+                    <div class="field-wrap">
+                        <label for="{{ form.last_name.id_for_label }}" class="required">Last Name</label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}<ul class="errorlist">{% for e in form.last_name.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                    </div>
+                </div>
+
+                <div class="field-wrap">
+                    <label for="{{ form.email.id_for_label }}" class="required">Email Address</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}<ul class="errorlist">{% for e in form.email.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                    <div class="field-wrap">
+                        <label for="{{ form.password1.id_for_label }}" class="required">Password</label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}<ul class="errorlist">{% for e in form.password1.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                    </div>
+                    <div class="field-wrap">
+                        <label for="{{ form.password2.id_for_label }}" class="required">Confirm Password</label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}<ul class="errorlist">{% for e in form.password2.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                    </div>
+                </div>
+
+                <!-- Password strength indicator (React) -->
+                <div id="pw-strength-root" style="margin-bottom:1rem;"></div>
+
+                <div style="padding-top:1rem;border-top:1px solid var(--border);display:flex;gap:0.75rem;flex-wrap:wrap;">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fa fa-user-plus"></i>&nbsp;Create Account
+                    </button>
+                    <a href="{% url 'workshop_app:login' %}" class="btn btn-outline-info">
+                        Already registered? Sign in
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const { useState, useEffect } = React;
+
+    function PasswordStrength() {
+        const [strength, setStrength] = useState(0);
+        const [label, setLabel] = useState("");
+
+        useEffect(() => {
+            const input = document.getElementById("id_password1");
+            if (!input) return;
+            function check() {
+                const v = input.value;
+                let score = 0;
+                if (v.length >= 8) score++;
+                if (/[A-Z]/.test(v)) score++;
+                if (/[0-9]/.test(v)) score++;
+                if (/[^A-Za-z0-9]/.test(v)) score++;
+                setStrength(score);
+                setLabel(["", "Weak", "Fair", "Good", "Strong"][score] || "");
+            }
+            input.addEventListener("input", check);
+            return () => input.removeEventListener("input", check);
+        }, []);
+
+        if (!strength) return null;
+
+        const colors = ["", "#dc2626","#d97706","#2563eb","#16a34a"];
+        const widths  = ["0%","25%","50%","75%","100%"];
+
+        return React.createElement("div", { style: { marginTop: "0.4rem" } },
+            React.createElement("div", {
+                style: {
+                    height: "5px", borderRadius: "9999px",
+                    background: "var(--border)", overflow: "hidden"
+                }
+            },
+                React.createElement("div", {
+                    style: {
+                        height: "100%", width: widths[strength],
+                        background: colors[strength],
+                        transition: "width 0.3s ease, background 0.3s ease",
+                        borderRadius: "9999px"
+                    }
+                })
+            ),
+            React.createElement("p", {
+                style: { fontSize: "0.78rem", color: colors[strength], margin: "0.2rem 0 0", fontWeight: 600 }
+            }, label ? `Password strength: ${label}` : "")
+        );
     }
-	</style>
 
-	<div class="container" >
-		<br>
-		<h3>Coordinator Registration Form</h3>
-		<br>
-		<form action="" method="post">
-			{% csrf_token %}
-				<table class="table table-bordered">
-					{{ form.as_table }}
-				</table>
-
-				<button class="btn btn-primary" type="submit">Register</button>
-		</form><br>
-		<!-- Activate when Instructor registeration starts -->
-		<br>
-	</div>
+    const el = document.getElementById("pw-strength-root");
+    if (el) ReactDOM.createRoot(el).render(React.createElement(PasswordStrength));
+})();
+</script>
 {% endblock %}

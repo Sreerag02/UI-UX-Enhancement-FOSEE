@@ -1,9 +1,7 @@
 {% extends "workshop_app/base.html" %}
 {% load static %}
 
-{% block title %}
-    Propose a workshop
-{% endblock %}
+{% block title %}Propose a Workshop{% endblock %}
 
 {% block extra-dependencies %}
     <link rel="stylesheet" href="{% static 'workshop_app/css/jquery-ui.css' %}" type="text/css"/>
@@ -12,110 +10,140 @@
 {% endblock %}
 
 {% block extra-custom-scripts %}
-    <script>
-        var dateToday = new Date();
-        var upto = new Date();
+<script>
+    var dateToday = new Date();
+    var upto = new Date();
+    dateToday.setDate(dateToday.getDate() + 3);
+    upto.setFullYear(dateToday.getFullYear() + 1);
 
-        dateToday.setDate(dateToday.getDate() + 3);
-        upto.setFullYear(dateToday.getFullYear() + 1);
-
-        $(function () {
-            $(".datepicker").datepicker({
-                changeMonth: true,
-                changeYear: true,
-                minDate: dateToday,
-                maxDate: upto,
-                beforeShowDay: $.datepicker.noWeekends,
-            });
-
-
-            $('#disp_tnc').click(function (e) {
-                e.preventDefault()
-                if ($('#id_workshop_type').val() === '')
-                    $('.modal-body').html("<p class='text-danger'>Please select a workshop type</p>")
-                else {
-                    $.ajax({
-                        url: '/workshop/type_tnc/' + $('#id_workshop_type').val(),
-                        success: function (data) {
-                            $('.modal-body').html(data.tnc)
-                        }
-                    })
-                }
-            })
+    $(function () {
+        $(".datepicker").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            minDate: dateToday,
+            maxDate: upto,
+            beforeShowDay: $.datepicker.noWeekends,
         });
-    </script>
+
+        $('#disp_tnc').click(function (e) {
+            e.preventDefault();
+            if ($('#id_workshop_type').val() === '') {
+                $('.modal-body').html("<p class='text-danger'><i class='fa fa-exclamation-circle'></i>&nbsp;Please select a workshop type first.</p>");
+            } else {
+                $.ajax({
+                    url: '/workshop/type_tnc/' + $('#id_workshop_type').val(),
+                    success: function (data) {
+                        $('.modal-body').html(data.tnc);
+                    }
+                });
+            }
+        });
+    });
+</script>
 {% endblock %}
 
-
 {% block content %}
-    <style type="text/css">
-        .errorlist {
-            color: red;
-        }
+<div class="container" style="max-width:540px;">
 
-    .modal-open .modal{
-        overflow-y: hidden;
-    }
-    </style>
-
-    <div class="container" align="center">
-        <div class="alert alert-info">
-            Note: Before proposing the workshop, please check about the workshop in the
-            <strong>Workshop Types</strong> section
-        </div>
-        <br><br>
-        <div class="col-md-6 col-md-offset-6">
-            <div class="card border-primary">
-                <div class="card-header">
-                    <h3>Propose Workshop</h3>
-                </div>
-                <div class="card-body">
-                    <div class="form-group">
-                        <form method="post">
-                            {% csrf_token %}
-                            <br/>
-                            {{ form.workshop_type }}
-                            <br>
-                            {{ form.date }}
-                            <br>
-                            {{ form.tnc_accepted }} I accept the
-                            <a href="#" id="disp_tnc" data-toggle="modal"
-                            data-target="#exampleModalCenter">
-                                terms and conditions
-                            </a>
-                            <br>
-                            {% if form.errors %}
-                                <br>
-                                <div style="text-align: left; border: 1px solid red; padding-top: 5px">
-                                    <h5 style="text-align: center; color: red; font-weight: bolder">Errors</h5>
-                                    {{ form.errors }}
-                                </div>
-                            {% endif %}
-                            <br>
-                            <button class="btn btn-success" type="submit">Submit</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <br>
-
+    <div class="text-center" style="margin-bottom:1.5rem;">
+        <span class="material-icons" style="font-size:2.5rem;color:var(--primary)">event_available</span>
+        <h2 style="margin-top:0.5rem;">Propose a Workshop</h2>
+        <p style="color:var(--text-muted);font-size:0.9rem;">
+            Fill in the details below to submit your workshop proposal.
+        </p>
     </div>
-    <!-- Modal -->
-    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog"
-         aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLongTitle">Terms and Conditions</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
+
+    <div class="alert alert-info" role="note" style="margin-bottom:1.25rem;">
+        <i class="fa fa-info-circle"></i>&nbsp;
+        Before proposing, review the workshop details in the
+        <a href="{% url 'workshop_app:workshop_type_list' %}" style="font-weight:600;">Workshop Types</a> section.
+    </div>
+
+    <div class="card animate-in">
+        <div class="card-body">
+
+            {% if form.errors %}
+            <div class="alert alert-danger" role="alert" style="margin-bottom:1rem;">
+                <i class="fa fa-exclamation-circle"></i>&nbsp;
+                Please correct the errors below.
+                <ul style="margin:0.5rem 0 0;padding-left:1.25rem;">
+                    {% for field in form %}{% for error in field.errors %}<li>{{ field.label }}: {{ error }}</li>{% endfor %}{% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <style>
+                .errorlist { color:var(--danger); font-size:0.82rem; margin:0.2rem 0 0; padding:0; list-style:none; }
+                .field-wrap { margin-bottom:1.1rem; }
+            </style>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                <div class="field-wrap">
+                    <label for="id_workshop_type">Workshop Type</label>
+                    {{ form.workshop_type }}
+                    {% if form.workshop_type.errors %}
+                        <ul class="errorlist">{% for e in form.workshop_type.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                    {% endif %}
+                </div>
+
+                <div class="field-wrap">
+                    <label for="id_date">Preferred Date</label>
+                    {{ form.date }}
+                    <p style="font-size:0.78rem;color:var(--text-muted);margin-top:0.2rem;">
+                        <i class="fa fa-info-circle"></i>&nbsp;
+                        Weekdays only, minimum 3 days from today.
+                    </p>
+                    {% if form.date.errors %}
+                        <ul class="errorlist">{% for e in form.date.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                    {% endif %}
+                </div>
+
+                <div class="field-wrap" style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+                    {{ form.tnc_accepted }}
+                    <label for="id_tnc_accepted" style="margin:0;font-weight:500;font-size:0.9rem;">
+                        I accept the
+                        <a href="#" id="disp_tnc"
+                           data-toggle="modal" data-target="#tncModal"
+                           style="font-weight:600;">terms and conditions</a>
+                    </label>
+                    {% if form.tnc_accepted.errors %}
+                        <ul class="errorlist" style="width:100%;">{% for e in form.tnc_accepted.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                    {% endif %}
+                </div>
+
+                <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border);display:flex;gap:0.75rem;flex-wrap:wrap;">
+                    <button class="btn btn-success" type="submit">
+                        <i class="fa fa-paper-plane"></i>&nbsp;Submit Proposal
                     </button>
+                    <a href="{% url 'workshop_app:workshop_type_list' %}" class="btn btn-outline-info">
+                        Cancel
+                    </a>
                 </div>
-                <div class="modal-body">
 
-                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- Terms & Conditions Modal -->
+<div class="modal fade" id="tncModal" tabindex="-1" role="dialog" aria-labelledby="tncModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius:var(--radius-lg);border:none;box-shadow:var(--shadow-lg);">
+            <div class="modal-header" style="border-bottom:1px solid var(--border);">
+                <h5 class="modal-title" id="tncModalTitle" style="font-weight:700;">
+                    <i class="fa fa-file-text-o"></i>&nbsp;Terms and Conditions
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="padding:1.25rem;color:var(--text-secondary);line-height:1.65;">
+                <!-- Loaded via AJAX -->
             </div>
         </div>
     </div>
+</div>
 {% endblock %}

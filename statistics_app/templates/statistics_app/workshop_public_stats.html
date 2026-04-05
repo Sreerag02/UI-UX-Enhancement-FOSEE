@@ -1,140 +1,413 @@
 {% extends 'workshop_app/base.html' %}
 
-{% block title %} Statistics {% endblock %}
+{% block title %}Workshop Statistics{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-3">
+<div class="container-fluid" style="max-width:1200px;">
+
+    <div class="page-header">
+        <div>
+            <h2>Workshop Statistics</h2>
+            <p style="margin:0;font-size:0.9rem;color:var(--text-muted);">
+                Public overview of all FOSSEE workshops
+            </p>
+        </div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+            <button class="btn btn-outline-info btn-sm" id="state_graph" aria-haspopup="dialog">
+                <i class="fa fa-bar-chart"></i>&nbsp;State Chart
+            </button>
+            <button class="btn btn-outline-info btn-sm" id="type_graph" aria-haspopup="dialog">
+                <i class="fa fa-bar-chart"></i>&nbsp;Workshops Chart
+            </button>
+        </div>
+    </div>
+
+    <!-- Mobile: toggle filter -->
+    <button class="btn btn-outline-info btn-sm" id="filter-toggle"
+            style="display:none;margin-bottom:1rem;width:100%;"
+            aria-expanded="false" aria-controls="filter-panel">
+        <i class="fa fa-filter"></i>&nbsp;Show Filters
+    </button>
+
+    <div class="stats-layout">
+
+        <!-- Filter Sidebar -->
+        <aside class="stats-sidebar" id="filter-panel" aria-label="Filter options">
             <form method="GET">
                 <div class="card">
-                    <div class="card-header">
-                        <div class="row">
-                            <div class="col-md-8">
-                                <h3><u>Filters</u></h3>
-                            </div>
-                            <div class="col-md-4">
-                                <a href="{% url 'statistics_app:public' %}" class="btn btn-outline-info">
-                                    <i class="fa fa-times"></i>&nbsp;Clear
-                                </a>
-                            </div>
-                        </div>
+                    <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-weight:700;display:flex;align-items:center;gap:0.5rem;">
+                            <i class="fa fa-filter"></i>&nbsp;Filters
+                        </span>
+                        <a href="{% url 'statistics_app:public' %}" class="btn btn-outline-info btn-sm"
+                           aria-label="Clear all filters">
+                            <i class="fa fa-times"></i>&nbsp;Clear
+                        </a>
                     </div>
-                    <div class="card-body">
-                        <div>From date: {{form.from_date}}</div>
-                        <div>To date: {{form.to_date}}</div>
-                        <div>Workshop: {{form.workshop_type}}</div>
-                        <div>State: {{form.state}}</div>
-                        <div>{{form.sort.help_text}}: {{form.sort}}</div>
-                        {% if request.user.is_authenticated %}
-                        <div>{{form.show_workshops.help_text}}: {{form.show_workshops}}</div>
-                        {% endif %}
-                        <br>
-                        <div class="row justify-content-center">
-                            <div class="col-md-4">
-                                <button type="submit" class="btn btn-success">
-                                    <i class="fa fa-eye"></i>&nbsp;View
-                                </button>
-                            </div>
-                            <div class="col-md-6">
-                                <button type="submit" class="btn btn-info" name="download" value="download">
-                                    <i class="fa fa-download"></i>&nbsp;Download
-                                </button>
-                            </div>
+                    <div class="card-body" style="display:grid;gap:1rem;">
+
+                        <div>
+                            <label for="{{ form.from_date.id_for_label }}">From Date</label>
+                            {{ form.from_date }}
                         </div>
+                        <div>
+                            <label for="{{ form.to_date.id_for_label }}">To Date</label>
+                            {{ form.to_date }}
+                        </div>
+                        <div>
+                            <label for="{{ form.workshop_type.id_for_label }}">Workshop</label>
+                            {{ form.workshop_type }}
+                        </div>
+                        <div>
+                            <label for="{{ form.state.id_for_label }}">State</label>
+                            {{ form.state }}
+                        </div>
+                        <div>
+                            <label for="{{ form.sort.id_for_label }}">{{ form.sort.help_text }}</label>
+                            {{ form.sort }}
+                        </div>
+                        {% if request.user.is_authenticated %}
+                        <div>
+                            <label for="{{ form.show_workshops.id_for_label }}">{{ form.show_workshops.help_text }}</label>
+                            {{ form.show_workshops }}
+                        </div>
+                        {% endif %}
+
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.25rem;">
+                            <button type="submit" class="btn btn-success btn-sm" style="justify-content:center;">
+                                <i class="fa fa-eye"></i>&nbsp;View
+                            </button>
+                            <button type="submit" class="btn btn-outline-info btn-sm" name="download" value="download" style="justify-content:center;">
+                                <i class="fa fa-download"></i>&nbsp;Export
+                            </button>
+                        </div>
+
                     </div>
                 </div>
             </form>
-        </div>
-        <div class="col">
-            <div class="row">
-                <div class="col-md-6">
-                    {% include "statistics_app/paginator.html" %}
-                </div>
-                <div class="col-md-3">
-                    <button class="btn btn-info" id="state_graph">
-                        <i class="fa fa-bar-chart"></i>&nbsp;State chart
-                    </button>
-                </div>
-                <div class="col-md-3">
-                    <button class="btn btn-info" id="type_graph">
-                        <i class="fa fa-bar-chart"></i>&nbsp;Workshops chart
-                    </button>
-                </div>
-            </div>
-            <table class="table table-responsive-sm">
-                <thead>
-                    <tr>
-                        <th>Sr No.</th>
-                        <th>Coordinator Name</th>
-                        <th>Institute Name</th>
-                        <th>Instructor Name</th>
-                        <th>Workshop Name</th>
-                        <th>Workshop Date</th>
-                    </tr>
-                </thead>
-                {% csrf_token %}
-                {% for workshop in objects %}
-                    <tbody>
-                        <tr>
-                            <td>{{ forloop.counter0|add:objects.start_index}}</td>
-                            <td>{{ workshop.coordinator.get_full_name | capfirst }}</td>
-                            <td>{{ workshop.coordinator.profile.institute | capfirst }}</td>
-                            <td>{{ workshop.instructor.get_full_name | capfirst }}</td>
-                            <td>{{ workshop.workshop_type.name }}</td>
-                            <td>{{ workshop.date | date}}</td>
-                        </tr>
-                    </tbody>
-                {% endfor %}
-            </table>
+        </aside>
+
+        <!-- Main table -->
+        <main>
             {% include "statistics_app/paginator.html" %}
-        </div>
+
+            <div style="overflow-x:auto;margin-top:1rem;">
+                <table class="table" aria-label="Workshop statistics">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Coordinator</th>
+                            <th>Institute</th>
+                            <th>Instructor</th>
+                            <th>Workshop</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% csrf_token %}
+                        {% for workshop in objects %}
+                        <tr>
+                            <td style="color:var(--text-muted);font-size:0.82rem;">
+                                {{ forloop.counter0|add:objects.start_index }}
+                            </td>
+                            <td style="font-weight:600;">{{ workshop.coordinator.get_full_name|capfirst }}</td>
+                            <td style="font-size:0.875rem;">{{ workshop.coordinator.profile.institute|capfirst }}</td>
+                            <td style="font-size:0.875rem;">{{ workshop.instructor.get_full_name|capfirst }}</td>
+                            <td>
+                                <span class="badge badge-info" style="font-weight:600;">
+                                    {{ workshop.workshop_type.name }}
+                                </span>
+                            </td>
+                            <td style="font-size:0.875rem;white-space:nowrap;">
+                                <i class="fa fa-calendar" aria-hidden="true"></i>&nbsp;{{ workshop.date|date }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align:center;padding:2rem;color:var(--text-muted);">
+                                <span class="material-icons" style="font-size:2rem;display:block;margin-bottom:0.5rem;">search_off</span>
+                                No workshops match the selected filters.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% include "statistics_app/paginator.html" %}
+        </main>
     </div>
 </div>
 
-<!-- The Modal -->
-<div id="dialog" title="Workshops Statistics">
-    <canvas id="myChart"></canvas>
+<!-- Chart dialog -->
+<div id="dialog" title="Workshop Statistics" style="display:none;">
+    <canvas id="myChart" style="max-height:380px;"></canvas>
 </div>
 
-<script type="text/javascript">
-    var state_labels = {{ws_states|safe}};
-    var state_data = {{ws_count|safe}};
-    var type_labels = {{ws_type|safe}};
-    var type_data = {{ws_type_count|safe}};
+<script>
+    // Mobile filter toggle
+    var filterToggle = document.getElementById("filter-toggle");
+    var filterPanel  = document.getElementById("filter-panel");
+    function checkMobile() {
+        if (window.innerWidth < 992) {
+            filterToggle.style.display = "block";
+            filterPanel.style.display  = "none";
+        } else {
+            filterToggle.style.display = "none";
+            filterPanel.style.display  = "block";
+        }
+    }
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    filterToggle.addEventListener("click", function() {
+        var open = filterPanel.style.display === "block";
+        filterPanel.style.display = open ? "none" : "block";
+        filterToggle.setAttribute("aria-expanded", !open);
+        filterToggle.innerHTML = open
+            ? "<i class='fa fa-filter'></i>&nbsp;Show Filters"
+            : "<i class='fa fa-filter'></i>&nbsp;Hide Filters";
+    });
+
+    // Chart
+    var state_labels = {{ ws_states|safe }};
+    var state_data   = {{ ws_count|safe }};
+    var type_labels  = {{ ws_type|safe }};
+    var type_data    = {{ ws_type_count|safe }};
     var chart;
-    $("#state_graph").on("click", function() {
-        show_graph(state_labels, state_data, "State wise workshops");
-    });
-    $("#type_graph").on("click", function() {
-        show_graph(type_labels, type_data, "Type wise workshops");
-    });
 
-    function show_graph(labels, data, graph_name, chart_name) {
+    function show_graph(labels, data, graph_name) {
         var ctx = document.getElementById('myChart').getContext('2d');
-        if(chart) chart.destroy();
+        if (chart) chart.destroy();
         chart = new Chart(ctx, {
-            // The type of chart we want to create
             type: 'bar',
-
-            // The data for our dataset
             data: {
                 labels: labels,
                 datasets: [{
                     data: data,
                     label: graph_name,
-                    backgroundColor: 'rgb(255, 99, 132)',
-                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(26, 86, 219, 0.75)',
+                    borderColor:     'rgba(26, 86, 219, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4
                 }]
             },
-            // Configuration options go here
-            options: {}
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            }
         });
-        $("#dialog").dialog({
-            width: 900,
-            height: 500
-        });
+        $("#dialog").dialog({ width: Math.min(900, window.innerWidth - 40), height: 480 });
     }
+
+    $("#state_graph").on("click", function() { show_graph(state_labels, state_data, "State wise workshops"); });
+    $("#type_graph").on("click",  function() { show_graph(type_labels, type_data, "Type wise workshops"); });
+</script>
+
+{% endblock %}{% extends 'workshop_app/base.html' %}
+
+{% block title %}Workshop Statistics{% endblock %}
+
+{% block content %}
+<div class="container-fluid" style="max-width:1200px;">
+
+    <div class="page-header">
+        <div>
+            <h2>Workshop Statistics</h2>
+            <p style="margin:0;font-size:0.9rem;color:var(--text-muted);">
+                Public overview of all FOSSEE workshops
+            </p>
+        </div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+            <button class="btn btn-outline-info btn-sm" id="state_graph" aria-haspopup="dialog">
+                <i class="fa fa-bar-chart"></i>&nbsp;State Chart
+            </button>
+            <button class="btn btn-outline-info btn-sm" id="type_graph" aria-haspopup="dialog">
+                <i class="fa fa-bar-chart"></i>&nbsp;Workshops Chart
+            </button>
+        </div>
+    </div>
+
+    <!-- Mobile: toggle filter -->
+    <button class="btn btn-outline-info btn-sm" id="filter-toggle"
+            style="display:none;margin-bottom:1rem;width:100%;"
+            aria-expanded="false" aria-controls="filter-panel">
+        <i class="fa fa-filter"></i>&nbsp;Show Filters
+    </button>
+
+    <div class="stats-layout">
+
+        <!-- Filter Sidebar -->
+        <aside class="stats-sidebar" id="filter-panel" aria-label="Filter options">
+            <form method="GET">
+                <div class="card">
+                    <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-weight:700;display:flex;align-items:center;gap:0.5rem;">
+                            <i class="fa fa-filter"></i>&nbsp;Filters
+                        </span>
+                        <a href="{% url 'statistics_app:public' %}" class="btn btn-outline-info btn-sm"
+                           aria-label="Clear all filters">
+                            <i class="fa fa-times"></i>&nbsp;Clear
+                        </a>
+                    </div>
+                    <div class="card-body" style="display:grid;gap:1rem;">
+
+                        <div>
+                            <label for="{{ form.from_date.id_for_label }}">From Date</label>
+                            {{ form.from_date }}
+                        </div>
+                        <div>
+                            <label for="{{ form.to_date.id_for_label }}">To Date</label>
+                            {{ form.to_date }}
+                        </div>
+                        <div>
+                            <label for="{{ form.workshop_type.id_for_label }}">Workshop</label>
+                            {{ form.workshop_type }}
+                        </div>
+                        <div>
+                            <label for="{{ form.state.id_for_label }}">State</label>
+                            {{ form.state }}
+                        </div>
+                        <div>
+                            <label for="{{ form.sort.id_for_label }}">{{ form.sort.help_text }}</label>
+                            {{ form.sort }}
+                        </div>
+                        {% if request.user.is_authenticated %}
+                        <div>
+                            <label for="{{ form.show_workshops.id_for_label }}">{{ form.show_workshops.help_text }}</label>
+                            {{ form.show_workshops }}
+                        </div>
+                        {% endif %}
+
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.25rem;">
+                            <button type="submit" class="btn btn-success btn-sm" style="justify-content:center;">
+                                <i class="fa fa-eye"></i>&nbsp;View
+                            </button>
+                            <button type="submit" class="btn btn-outline-info btn-sm" name="download" value="download" style="justify-content:center;">
+                                <i class="fa fa-download"></i>&nbsp;Export
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </form>
+        </aside>
+
+        <!-- Main table -->
+        <main>
+            {% include "statistics_app/paginator.html" %}
+
+            <div style="overflow-x:auto;margin-top:1rem;">
+                <table class="table" aria-label="Workshop statistics">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Coordinator</th>
+                            <th>Institute</th>
+                            <th>Instructor</th>
+                            <th>Workshop</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% csrf_token %}
+                        {% for workshop in objects %}
+                        <tr>
+                            <td style="color:var(--text-muted);font-size:0.82rem;">
+                                {{ forloop.counter0|add:objects.start_index }}
+                            </td>
+                            <td style="font-weight:600;">{{ workshop.coordinator.get_full_name|capfirst }}</td>
+                            <td style="font-size:0.875rem;">{{ workshop.coordinator.profile.institute|capfirst }}</td>
+                            <td style="font-size:0.875rem;">{{ workshop.instructor.get_full_name|capfirst }}</td>
+                            <td>
+                                <span class="badge badge-info" style="font-weight:600;">
+                                    {{ workshop.workshop_type.name }}
+                                </span>
+                            </td>
+                            <td style="font-size:0.875rem;white-space:nowrap;">
+                                <i class="fa fa-calendar" aria-hidden="true"></i>&nbsp;{{ workshop.date|date }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align:center;padding:2rem;color:var(--text-muted);">
+                                <span class="material-icons" style="font-size:2rem;display:block;margin-bottom:0.5rem;">search_off</span>
+                                No workshops match the selected filters.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% include "statistics_app/paginator.html" %}
+        </main>
+    </div>
+</div>
+
+<!-- Chart dialog -->
+<div id="dialog" title="Workshop Statistics" style="display:none;">
+    <canvas id="myChart" style="max-height:380px;"></canvas>
+</div>
+
+<script>
+    // Mobile filter toggle
+    var filterToggle = document.getElementById("filter-toggle");
+    var filterPanel  = document.getElementById("filter-panel");
+    function checkMobile() {
+        if (window.innerWidth < 992) {
+            filterToggle.style.display = "block";
+            filterPanel.style.display  = "none";
+        } else {
+            filterToggle.style.display = "none";
+            filterPanel.style.display  = "block";
+        }
+    }
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    filterToggle.addEventListener("click", function() {
+        var open = filterPanel.style.display === "block";
+        filterPanel.style.display = open ? "none" : "block";
+        filterToggle.setAttribute("aria-expanded", !open);
+        filterToggle.innerHTML = open
+            ? "<i class='fa fa-filter'></i>&nbsp;Show Filters"
+            : "<i class='fa fa-filter'></i>&nbsp;Hide Filters";
+    });
+
+    // Chart
+    var state_labels = {{ ws_states|safe }};
+    var state_data   = {{ ws_count|safe }};
+    var type_labels  = {{ ws_type|safe }};
+    var type_data    = {{ ws_type_count|safe }};
+    var chart;
+
+    function show_graph(labels, data, graph_name) {
+        var ctx = document.getElementById('myChart').getContext('2d');
+        if (chart) chart.destroy();
+        chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    label: graph_name,
+                    backgroundColor: 'rgba(26, 86, 219, 0.75)',
+                    borderColor:     'rgba(26, 86, 219, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+        $("#dialog").dialog({ width: Math.min(900, window.innerWidth - 40), height: 480 });
+    }
+
+    $("#state_graph").on("click", function() { show_graph(state_labels, state_data, "State wise workshops"); });
+    $("#type_graph").on("click",  function() { show_graph(type_labels, type_data, "Type wise workshops"); });
 </script>
 
 {% endblock %}

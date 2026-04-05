@@ -1,32 +1,64 @@
 {% extends 'workshop_app/base.html' %}
 
-{% block title %}
-    View Workshop details
-{% endblock %}
+{% block title %}{{ workshop_type.name }} — Details{% endblock %}
 
 {% block content %}
-    <div class="container">
-        <h2 class="text-center m-3">Workshop Details</h2>
-        <table class="table table-hover">
-            <tr class="d-flex">
-                <th class="col-3">Workshop Name :</th>
-                <td class="col">{{ workshop_type.name }}</td>
-            </tr>
-            <tr class="d-flex">
-                <th class="col-3">Duration :</th>
-                <td class="col">{{ workshop_type.duration }} day(s)</td>
-            </tr>
-            <tr class="d-flex">
-                <th class="col-3">Description :</th>
-                <td class="col">{{ workshop_type.description }}</td>
-            </tr>
-            <tr class="d-flex">
-                <th class="col-3">Terms and Conditions :</th>
-                <td class="col">{{ workshop_type.terms_and_conditions }}</td>
-            </tr>
-        </table>
+<div class="container" style="max-width:700px;">
+
+    <div style="margin-bottom:1.25rem;">
+        <a href="{% url 'workshop_app:workshop_type_list' %}" class="btn btn-outline-info btn-sm">
+            <i class="fa fa-arrow-left"></i>&nbsp;Back to Workshop Types
+        </a>
     </div>
 
+    <div class="card animate-in">
+        <div class="card-header" style="display:flex;align-items:center;gap:0.75rem;">
+            <span class="material-icons" style="color:var(--primary)">school</span>
+            <h2 style="margin:0;font-size:1.2rem;">{{ workshop_type.name }}</h2>
+        </div>
+        <div class="card-body">
+
+            <dl style="margin:0;display:grid;gap:1rem;">
+
+                <div style="display:grid;grid-template-columns:160px 1fr;gap:0.75rem;padding-bottom:1rem;border-bottom:1px solid var(--border);align-items:start;">
+                    <dt style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);">Duration</dt>
+                    <dd style="margin:0;">
+                        <span class="badge badge-info" style="font-size:0.875rem;">
+                            <i class="fa fa-clock-o"></i>&nbsp;{{ workshop_type.duration }} day{{ workshop_type.duration|pluralize }}
+                        </span>
+                    </dd>
+                </div>
+
+                <div style="display:grid;grid-template-columns:160px 1fr;gap:0.75rem;padding-bottom:1rem;border-bottom:1px solid var(--border);align-items:start;">
+                    <dt style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);">Description</dt>
+                    <dd style="margin:0;color:var(--text-secondary);line-height:1.65;">{{ workshop_type.description }}</dd>
+                </div>
+
+                <div style="display:grid;grid-template-columns:160px 1fr;gap:0.75rem;align-items:start;">
+                    <dt style="font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);">Terms &amp; Conditions</dt>
+                    <dd style="margin:0;color:var(--text-secondary);line-height:1.65;">{{ workshop_type.terms_and_conditions }}</dd>
+                </div>
+            </dl>
+
+            {% if request.user|has_group:"instructor" %}
+            <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border);display:flex;gap:0.75rem;flex-wrap:wrap;">
+                <a href="{% url 'workshop_app:edit_workshop_type' workshop_type.id %}" class="btn btn-primary btn-sm">
+                    <i class="fa fa-pencil"></i>&nbsp;Edit Workshop Type
+                </a>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+    
+    {% if not request.user|has_group:"instructor" %}
+    <div style="margin-top:1.25rem;text-align:center;">
+        <a href="{% url 'workshop_app:propose_workshop' %}" class="btn btn-success">
+            <i class="fa fa-plus-circle"></i>&nbsp;Propose This Workshop
+        </a>
+    </div>
+    {% endif %}
+
+</div>
 {% endblock %}
-
-

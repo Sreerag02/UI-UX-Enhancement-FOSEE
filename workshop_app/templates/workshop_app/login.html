@@ -1,53 +1,168 @@
 {% extends 'workshop_app/base.html' %}
 
-{% block title %}
-    Login
-{% endblock %}
+{% block title %}Login{% endblock %}
 
 {% block content %}
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6 col-md-offset-6">
-                <div class="card">
-                    <div class="card-body">
-                        <form class="px-3 py-3" method="post">
-                        {% csrf_token %}
-                        {% if form.errors %}
-                            {% for field in form %}
-                                {% for error in field.errors %}
-                                    <div class="alert alert-dismissible alert-danger">
-                                        <button type="button" class="close" data-dismiss="alert">
-                                            <i class="fa fa-close"></i>
-                                        </button>
-                                        <strong>{{ error|escape }}</strong>
-                                    </div>
-                                {% endfor %}
-                            {% endfor %}
-                            {% for error in form.non_field_errors %}
-                                <div class="alert alert-dismissible alert-danger">
-                                    <button type="button" class="close" data-dismiss="alert">
-                                        <i class="fa fa-close"></i>
-                                    </button>
-                                    <strong>{{ error|escape }}</strong>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
-                        <div class="form-group">
-                          <label for="id_username">Username</label>
-                          {{ form.username }}
-                        </div>
-                        <div class="form-group">
-                          <label for="id_password">Password</label>
-                          {{ form.password }}
-                        </div>
-                        <button type="submit" class="btn btn-primary">Sign in</button>
-                        </form>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="{% url 'workshop_app:register' %}">New around here? Sign up</a>
-                        <a class="dropdown-item" href="{% url 'password_reset' %}">Forgot password?</a>
+<div class="container" style="max-width:420px; padding-top:2rem;">
+
+    <div class="text-center" style="margin-bottom:2rem;">
+        <span class="material-icons" style="font-size:2.5rem;color:var(--primary)">account_circle</span>
+        <h2 style="margin-top:0.5rem;">Welcome back</h2>
+        <p style="color:var(--text-muted);font-size:0.9rem;">Sign in to your FOSSEE account</p>
+    </div>
+
+    <div class="card animate-in">
+        <div class="card-body">
+
+            {% if form.errors %}
+                <div class="alert alert-danger" role="alert">
+                    <i class="fa fa-exclamation-circle"></i>
+                    {% for field in form %}
+                        {% for error in field.errors %}{{ error }}{% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- React mounts here -->
+            <div id="login-form-root"></div>
+
+            <!-- Fallback / non-JS form -->
+            <noscript>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="id_username">Username</label>
+                        {{ form.username }}
                     </div>
-                </div>  
+                    <div class="form-group">
+                        <label for="id_password">Password</label>
+                        {{ form.password }}
+                    </div>
+                    <button class="btn btn-primary" style="width:100%" type="submit">Sign in</button>
+                </form>
+            </noscript>
+
+            <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border);">
+                <a href="{% url 'workshop_app:register' %}" style="display:block;margin-bottom:0.5rem;font-size:0.875rem;">
+                    <i class="fa fa-user-plus"></i>&nbsp;New here? Create an account
+                </a>
+                <a href="{% url 'password_reset' %}" style="font-size:0.875rem;color:var(--text-muted);">
+                    <i class="fa fa-key"></i>&nbsp;Forgot your password?
+                </a>
             </div>
         </div>
     </div>
+</div>
+
+<script>
+(function() {
+    const csrfToken = "{{ csrf_token }}";
+    const { useState, useRef } = React;
+
+    function LoginForm() {
+        const [username, setUsername] = useState("");
+        const [password, setPassword] = useState("");
+        const [showPw, setShowPw] = useState(false);
+        const [errors, setErrors] = useState({});
+        const formRef = useRef(null);
+
+        function validate() {
+            const e = {};
+            if (!username.trim()) e.username = "Username is required.";
+            if (!password)         e.password = "Password is required.";
+            return e;
+        }
+
+        function handleSubmit(e) {
+            e.preventDefault();
+            const errs = validate();
+            if (Object.keys(errs).length) { setErrors(errs); return; }
+            formRef.current.submit();
+        }
+
+        return React.createElement("form", {
+            method: "post",
+            onSubmit: handleSubmit,
+            ref: formRef,
+            noValidate: true,
+            "aria-label": "Login form"
+        },
+            // CSRF
+            React.createElement("input", { type: "hidden", name: "csrfmiddlewaretoken", value: csrfToken }),
+
+            // Username
+            React.createElement("div", { className: "form-group" },
+                React.createElement("label", { htmlFor: "id_username" }, "Username"),
+                React.createElement("input", {
+                    id: "id_username",
+                    name: "username",
+                    type: "text",
+                    className: "form-control",
+                    value: username,
+                    onChange: e => { setUsername(e.target.value); setErrors(prev => ({...prev, username: ""})); },
+                    autoComplete: "username",
+                    "aria-describedby": errors.username ? "err-username" : undefined,
+                    "aria-invalid": !!errors.username,
+                    placeholder: "Enter your username"
+                }),
+                errors.username && React.createElement("p", {
+                    id: "err-username", role: "alert",
+                    style: { color: "var(--danger)", fontSize: "0.82rem", marginTop: "0.25rem" }
+                }, errors.username)
+            ),
+
+            // Password
+            React.createElement("div", { className: "form-group" },
+                React.createElement("label", { htmlFor: "id_password" }, "Password"),
+                React.createElement("div", { style: { position: "relative" } },
+                    React.createElement("input", {
+                        id: "id_password",
+                        name: "password",
+                        type: showPw ? "text" : "password",
+                        className: "form-control",
+                        value: password,
+                        onChange: e => { setPassword(e.target.value); setErrors(prev => ({...prev, password: ""})); },
+                        autoComplete: "current-password",
+                        "aria-describedby": errors.password ? "err-password" : undefined,
+                        "aria-invalid": !!errors.password,
+                        placeholder: "Enter your password",
+                        style: { paddingRight: "2.75rem" }
+                    }),
+                    React.createElement("button", {
+                        type: "button",
+                        onClick: () => setShowPw(s => !s),
+                        "aria-label": showPw ? "Hide password" : "Show password",
+                        style: {
+                            position: "absolute", right: "0.75rem", top: "50%",
+                            transform: "translateY(-50%)", background: "none",
+                            border: "none", cursor: "pointer", color: "var(--text-muted)",
+                            padding: 0, fontSize: "1rem"
+                        }
+                    },
+                        React.createElement("i", { className: showPw ? "fa fa-eye-slash" : "fa fa-eye" })
+                    )
+                ),
+                errors.password && React.createElement("p", {
+                    id: "err-password", role: "alert",
+                    style: { color: "var(--danger)", fontSize: "0.82rem", marginTop: "0.25rem" }
+                }, errors.password)
+            ),
+
+            // Submit
+            React.createElement("button", {
+                type: "submit",
+                className: "btn btn-primary",
+                style: { width: "100%", justifyContent: "center", marginTop: "0.5rem" }
+            },
+                React.createElement("i", { className: "fa fa-sign-in" }),
+                " Sign in"
+            )
+        );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("login-form-root"));
+    root.render(React.createElement(LoginForm));
+})();
+</script>
 {% endblock %}

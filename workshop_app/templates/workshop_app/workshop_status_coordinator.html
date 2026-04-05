@@ -1,88 +1,147 @@
 {% extends "workshop_app/base.html" %}
 
-{% block title %}
-    My Workshops
-{% endblock %}
-
-{% block extra-custom-scripts %}
-<style >
-    .table-heading{
-        color: #04a9cf;
-    }
-    </style>
-{% endblock %}
+{% block title %}My Workshops{% endblock %}
 
 {% block content %}
-    {% if not workshops %}
-        <div class="container">
-            <div class="jumbotron">
-                <h1>Welcome {{ user.first_name }}</h1>
-                <p>Information Related to your workshops will be shown here, you can also
-                    propose a Workshop as per your available date in <strong>Propose Workshop tab</strong> .</p>
-            </div>
-        </div>
-    {% else %}
-        <h3 class="text-center">The status of your workshops </h3>
-        <br>
+<div class="container">
 
-        <!-- Accepted View -->
+{% if not workshops %}
+    <div class="welcome-banner animate-in">
+        <h1>Welcome, {{ user.first_name }}! 👋</h1>
+        <p>
+            Your workshop activity will appear here. Ready to get started?
+            Head to <a href="{% url 'workshop_app:propose_workshop' %}" style="color:#fff;font-weight:700;text-decoration:underline;">Propose Workshop</a>
+            to schedule your first workshop.
+        </p>
+    </div>
+{% else %}
 
-        <br>
-        <div class="container">
-            <h3 class="text-center table-heading"><strong>Workshops Accepted</strong></h3>
-            <table class="table table-striped table-responsive-sm">
-                <thead>
-                <tr>
-                    <th>Workshop Name</th>
-                    <th>Instructor Name</th>
-                    <th>Workshop Day</th>
-                    <th>Status</th>
-                </tr>
-                </thead>
+    <div class="page-header">
+        <h2>My Workshops</h2>
+    </div>
 
-                {% for workshop in workshops %}
-                    <tbody>
-                    <tr>
-                        {% if workshop.status %}
-                            <td><a href="{% url 'workshop_app:workshop_details' workshop.id %}" >{{ workshop.workshop_type |capfirst }}</a></td>
-                            <td>{{ workshop.instructor.get_full_name }}</td>
-                            <td>{{ workshop.date | date }}</td>
-                            <td><span class="badge badge-success">{{ workshop.get_status }}</span></td>
-                        {% endif %}
-                    </tr>
-                    </tbody>
-                {% endfor %}
+    <!-- Inject Django data for React to consume -->
+    <script id="workshops-data" type="application/json">
+        {
+            "accepted": [
+                {% for w in workshops %}{% if w.status %}
+                {
+                    "id": {{ w.id }},
+                    "name": "{{ w.workshop_type|capfirst|escapejs }}",
+                    "instructor": "{{ w.instructor.get_full_name|escapejs }}",
+                    "date": "{{ w.date|date }}",
+                    "status": "{{ w.get_status|escapejs }}",
+                    "url": "{% url 'workshop_app:workshop_details' w.id %}"
+                }{% if not forloop.last %},{% endif %}
+                {% endif %}{% endfor %}
+            ],
+            "proposed": [
+                {% for w in workshops %}{% if not w.status and w.tnc_accepted %}
+                {
+                    "id": {{ w.id }},
+                    "name": "{{ w.workshop_type|capfirst|escapejs }}",
+                    "date": "{{ w.date|date }}",
+                    "status": "{{ w.get_status|escapejs }}",
+                    "url": "{% url 'workshop_app:workshop_details' w.id %}"
+                }{% if not forloop.last %},{% endif %}
+                {% endif %}{% endfor %}
+            ]
+        }
+    </script>
 
-            </table>
-        </div>
+    <div id="workshop-status-root"></div>
 
-        <!-- Proposed View -->
+{% endif %}
+</div>
 
-        <br>
-        <div class="container">
-            <h3 class="text-center table-heading"><strong>Workshops Proposed By Me</strong></h3>
-            <table class="table table-striped table-responsive-sm">
-                <thead>
-                <tr>
-                    <th>Workshop Name</th>
-                    <th>Workshop Day</th>
-                    <th>Status</th>
-                </tr>
-                </thead>
-                {% for workshop in workshops %}
-                    <tbody>
-                    <tr>
-                        {% if not workshop.status and workshop.tnc_accepted %}
-                            <td><a href="{% url 'workshop_app:workshop_details' workshop.id %}" >{{ workshop.workshop_type |capfirst }}</a></td>
-                            <td>{{ workshop.date | date }}</td>
-                            <td><span class="badge badge-warning">{{ workshop.get_status }}</span></td>
-                        {% endif %}
-                    </tr>
-                    </tbody>
+<script>
+(function() {
+    const { useState } = React;
+    const data = JSON.parse(document.getElementById("workshops-data")?.textContent || '{"accepted":[],"proposed":[]}');
 
-                {% endfor %}
-            </table>
-        </div>
-    {% endif %}
+    function StatusBadge({ text, type }) {
+        const cls = type === "accepted" ? "badge-success" : "badge-warning";
+        return React.createElement("span", { className: `badge ${cls}` }, text);
+    }
 
+    function WorkshopTable({ workshops, type }) {
+        if (!workshops.length) {
+            return React.createElement("div", {
+                style: { textAlign:"center", padding:"2.5rem 1rem", color:"var(--text-muted)" }
+            },
+                React.createElement("span", { className:"material-icons", style:{fontSize:"2.5rem"} }, "inbox"),
+                React.createElement("p", { style:{marginTop:"0.5rem"} }, "No workshops here yet.")
+            );
+        }
+
+        const isAccepted = type === "accepted";
+
+        return React.createElement("div", { style:{overflowX:"auto"} },
+            React.createElement("table", { className:"table", "aria-label": isAccepted ? "Accepted workshops" : "Proposed workshops" },
+                React.createElement("thead", null,
+                    React.createElement("tr", null,
+                        React.createElement("th", null, "Workshop"),
+                        isAccepted && React.createElement("th", null, "Instructor"),
+                        React.createElement("th", null, "Date"),
+                        React.createElement("th", null, "Status")
+                    )
+                ),
+                React.createElement("tbody", null,
+                    workshops.map(w =>
+                        React.createElement("tr", { key: w.id },
+                            React.createElement("td", null,
+                                React.createElement("a", { href: w.url, style:{fontWeight:600} }, w.name)
+                            ),
+                            isAccepted && React.createElement("td", null, w.instructor),
+                            React.createElement("td", null,
+                                React.createElement("span", { style:{display:"inline-flex",alignItems:"center",gap:"0.3rem",fontSize:"0.875rem"} },
+                                    React.createElement("i", { className:"fa fa-calendar" }),
+                                    w.date
+                                )
+                            ),
+                            React.createElement("td", null,
+                                React.createElement(StatusBadge, { text: w.status, type })
+                            )
+                        )
+                    )
+                )
+            )
+        );
+    }
+
+    function WorkshopStatus() {
+        const tabs = [
+            { id: "accepted", label: `Accepted (${data.accepted.length})`, icon: "check_circle" },
+            { id: "proposed", label: `Proposed (${data.proposed.length})`, icon: "schedule" }
+        ];
+        const [active, setActive] = useState("accepted");
+
+        return React.createElement("div", { className:"animate-in" },
+            React.createElement("div", { className:"tab-list", role:"tablist" },
+                tabs.map(t =>
+                    React.createElement("button", {
+                        key: t.id,
+                        className: `tab-btn ${active === t.id ? "active" : ""}`,
+                        role: "tab",
+                        "aria-selected": active === t.id,
+                        onClick: () => setActive(t.id)
+                    },
+                        React.createElement("span", { className:"material-icons", style:{fontSize:"1rem",verticalAlign:"middle",marginRight:"0.3rem"} }, t.icon),
+                        t.label
+                    )
+                )
+            ),
+            React.createElement("div", { role:"tabpanel" },
+                active === "accepted"
+                    ? React.createElement(WorkshopTable, { workshops: data.accepted, type:"accepted" })
+                    : React.createElement(WorkshopTable, { workshops: data.proposed, type:"proposed" })
+            )
+        );
+    }
+
+    
+    const root = document.getElementById("workshop-status-root");
+    if (root) ReactDOM.createRoot(root).render(React.createElement(WorkshopStatus));
+})();
+</script>
 {% endblock %}
