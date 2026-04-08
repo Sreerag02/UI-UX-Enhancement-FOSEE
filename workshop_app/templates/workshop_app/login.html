@@ -1,53 +1,77 @@
 {% extends 'workshop_app/base.html' %}
 
-{% block title %}
-    Login
-{% endblock %}
+{% block title %} Login {% endblock %}
 
 {% block content %}
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6 col-md-offset-6">
-                <div class="card">
-                    <div class="card-body">
-                        <form class="px-3 py-3" method="post">
-                        {% csrf_token %}
-                        {% if form.errors %}
-                            {% for field in form %}
-                                {% for error in field.errors %}
-                                    <div class="alert alert-dismissible alert-danger">
-                                        <button type="button" class="close" data-dismiss="alert">
-                                            <i class="fa fa-close"></i>
-                                        </button>
-                                        <strong>{{ error|escape }}</strong>
-                                    </div>
-                                {% endfor %}
-                            {% endfor %}
-                            {% for error in form.non_field_errors %}
-                                <div class="alert alert-dismissible alert-danger">
-                                    <button type="button" class="close" data-dismiss="alert">
-                                        <i class="fa fa-close"></i>
-                                    </button>
-                                    <strong>{{ error|escape }}</strong>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
-                        <div class="form-group">
-                          <label for="id_username">Username</label>
-                          {{ form.username }}
-                        </div>
-                        <div class="form-group">
-                          <label for="id_password">Password</label>
-                          {{ form.password }}
-                        </div>
-                        <button type="submit" class="btn btn-primary">Sign in</button>
-                        </form>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="{% url 'workshop_app:register' %}">New around here? Sign up</a>
-                        <a class="dropdown-item" href="{% url 'password_reset' %}">Forgot password?</a>
-                    </div>
-                </div>  
+
+{% load static %}
+
+<div class="container-fluid p-0">
+  <div class="row g-0" style="min-height: 100vh;">
+
+    <!-- LEFT VISUAL -->
+    <div class="login-visual"></div>
+
+    <!-- RIGHT LOGIN -->
+    <div class="col-md-6 d-flex align-items-center justify-content-center">
+
+      <div class="card login-card shadow-lg border-0">
+        <div class="card-body p-5">
+
+          <!-- Greeting -->
+          <div class="text-center mb-4">
+            <small id="greeting-text" class="text-muted"></small>
+            <h3 class="font-weight-bold">Welcome Back</h3>
+          </div>
+
+          <form method="post">
+            {% csrf_token %}
+
+            {% if form.errors %}
+              <div class="alert alert-danger text-center">
+                Invalid username or password
+              </div>
+            {% endif %}
+
+            <div class="form-group mb-3">
+              <label>Username</label>
+              {{ form.username }}
             </div>
+
+            <div class="form-group mb-4">
+              <label>Password</label>
+              {{ form.password }}
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block login-btn">
+              Login
+            </button>
+          </form>
+
+          <div class="text-center mt-4">
+            <a href="{% url 'workshop_app:register' %}">Create Account</a><br>
+            <a href="{% url 'password_reset' %}">Forgot Password?</a>
+          </div>
+
         </div>
+      </div>
+
     </div>
+  </div>
+</div>
+
+<!-- Greeting Script -->
+<script>
+  const hour = new Date().getHours();
+  let greeting = "Hello";
+
+  if (hour < 12) greeting = "Good Morning";
+  else if (hour < 18) greeting = "Good Afternoon";
+  else greeting = "Good Evening";
+
+  document.getElementById("greeting-text").innerText = greeting;
+</script>
+
+
+
 {% endblock %}
