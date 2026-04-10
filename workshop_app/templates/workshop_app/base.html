@@ -3,19 +3,20 @@
 {% load static %}
 {% load custom_filters %}
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>
-        {% block title %}
-            HomePage
-        {% endblock %}
-    </title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>
+		{% block title %}
+			HomePage
+		{% endblock %}
+	</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
 
-    <script src="{% static 'workshop_app/js/jquery-3.4.1.min.js' %}"></script>
-    <script src="{% static 'workshop_app/js/bootstrap.min.js' %}"></script>
-    <script src="{% static 'workshop_app/js/popper.min.js' %}"></script>
-    <script src="{% static 'workshop_app/js/toastr.min.js' %}"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js">
+    <link href="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js">
+    <link rel="stylesheet" href="{{ URL_ROOT }}/static/workshop_app/css/sticky-footer.css" type="text/css" />
+    <!-- favicon -->
+    <link rel="shortcut icon" type="image/png" href="{{ URL_ROOT}}/static/workshop_app/img/fevicon_python.png"/>
+</head>
 
 
     {% block extra-dependencies %}
@@ -116,13 +117,11 @@
     {% endblock %}
 </div>
 
-<script>
-    {% if messages %}
-        {% for message in messages %}
-            toastr[{% if message.tags %} "{{ message.tags }}" {% else %} "info" {% endif %}]("{{ message }}");
-        {% endfor %}
-    {% endif %}
-</script>
+	{% block content %}
+  <main role="main">
+		<h1>Base Template Content. Please override me</h1>
+	</main>
+  {% endblock %}
 
 </body>
 <footer class="footer">
