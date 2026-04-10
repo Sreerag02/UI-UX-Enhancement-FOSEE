@@ -15,10 +15,13 @@ Including another URLconf
 """
 from django.conf.urls import url
 from workshop_app import views
+from . import api_views
 
 app_name = "workshop_app"
 
 urlpatterns = [
+    url(r'^api/csrf/$', api_views.get_csrf, name='api-csrf'),
+    url(r'^api/login/$', api_views.api_login, name='api-login'),
     url(r'^$', views.index, name='index'),
     url(r'^register/$', views.user_register, name="register"),
     url(r'^activate_user/(?P<key>.+)$', views.activate_user),

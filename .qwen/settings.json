@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 *)",
+      "Bash(pip3 install *)",
+      "Bash(pip *)",
+      "Bash(sudo *)",
+      "Bash(true)",
+      "Bash(pkill *)",
+      "Bash(npm create *)",
+      "Bash(npm install)",
+      "Bash(npm run *)"
+    ]
+  },
+  "$version": 3
+}
