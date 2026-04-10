@@ -13,16 +13,18 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 import os
 import sys
 from local_settings import (
-                    EMAIL_HOST,
-                    EMAIL_PORT,
-                    EMAIL_HOST_USER,
-                    EMAIL_HOST_PASSWORD,
-                    EMAIL_USE_TLS,
-                    SENDER_EMAIL
-                    )
+    EMAIL_HOST,
+    EMAIL_PORT,
+    EMAIL_HOST_USER,
+    EMAIL_HOST_PASSWORD,
+    EMAIL_USE_TLS,
+    SENDER_EMAIL
+)
+
+from decouple import config
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
@@ -35,7 +37,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -46,19 +47,18 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'workshop_app',
-    'recurrence',
     'statistics_app',
+    'teams',
+    'cms',
 ]
 
-MIDDLEWARE_CLASSES = [
+MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
 ]
 
 ROOT_URLCONF = 'workshop_portal.urls'
@@ -66,7 +66,7 @@ ROOT_URLCONF = 'workshop_portal.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['workshop_app/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -84,15 +84,17 @@ WSGI_APPLICATION = 'workshop_portal.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 DATABASES = {
-        'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        'TEST': {
-            'NAME': 'mytestdatabase',
-        },
-        }
+    'default': {
+        'ENGINE': 'django.db.backends.{0}'.format(
+            config('DB_ENGINE', default='sqlite3')
+        ),
+        'NAME': config('DB_NAME', default=os.path.join(BASE_DIR, 'db.sqlite3')),
+        'USER': config('DB_USER', default=''),
+        'PASSWORD': config('DB_PASSWORD', default=''),
+        'HOST': config('DB_HOST', default='localhost'),
+        'PORT': config('DB_PORT', default='')
     }
-
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
@@ -112,7 +114,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
 
@@ -126,15 +127,14 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
 
-STATIC_ROOT = os.path.join(BASE_DIR, "static/")
+STATIC_ROOT = 'workshop_app/static/'
 
-LOGIN_URL = '/login/'
+LOGIN_URL = '/workshop/login/'
 
 MEDIA_URL = '/data/'
 
@@ -142,7 +142,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "workshop_app", "data")
 
 LOG_FOLDER = os.path.join(BASE_DIR, "workshop_app", "logs")
 
-#Email Connection Settings
+# Email Connection Settings
 EMAIL_HOST = EMAIL_HOST
 EMAIL_HOST_USER = EMAIL_HOST_USER
 EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD
@@ -153,15 +153,18 @@ SENDER_EMAIL = SENDER_EMAIL
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-#Change this to the production url
-PRODUCTION_URL = 'your_production_url'
+# Change this to the production url
+PRODUCTION_URL = 'http://localhost:8000'
 
 ADMIN_EMAIL = 'your admin email'
 
-#Set True or False to view/hide
+# Set True or False to view/hide
 SHOW_WORKSHOP_STATS = True
 
-LOGIN_REDIRECT_URL = '/profile'
+# Create a CMS page as a home page and give the page title here
+HOME_PAGE_TITLE = "home-page-title"
+
+LOGIN_REDIRECT_URL = '/workshop/login'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_COOKIE_AGE = 3600

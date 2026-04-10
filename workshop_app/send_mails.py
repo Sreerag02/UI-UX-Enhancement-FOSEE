@@ -3,6 +3,8 @@ __author__ = "Akshen Doke"
 import hashlib
 import logging
 import logging.config
+import os
+
 import yaml
 import re
 from django.core.mail import send_mail
@@ -115,7 +117,7 @@ def send_email(	request, call_on,
 
 					Please click on the below link to
 					activate your account
-					{0}/activate_user/{1}
+					{0}/workshop/activate_user/{1}
 
 					After activation you can proceed to book your dates for
 					the workshop(s).
@@ -147,7 +149,7 @@ def send_email(	request, call_on,
 					Workshop title:{5}
 
 					You may accept or reject this booking
-					{6}/my_workshops/ .""".format(
+					{6}/workshop/dashboard""".format(
 					user_name, request.user.email,
 					request.user.profile.phone_number,
 					request.user.profile.institute,
@@ -178,7 +180,7 @@ def send_email(	request, call_on,
 
 					Your request has been received and is awaiting instructor
 					approval/disapproval. You will be notified about the status
-					via email and on {2}/my_workshops/
+					via email and on {2}/workshop/status
 
 					Please Note: Unless you get a confirmation email for this workshop with
 					the list of instructions, your workshop shall be in the waiting list.
@@ -225,7 +227,10 @@ def send_email(	request, call_on,
 				format(workshop_date)
 			msg = EmailMultiAlternatives(subject, message, SENDER_EMAIL, [request.user.email])
 			attachment_paths = path.join(settings.MEDIA_ROOT, workshop_title.replace(" ","_"))
-			files = listdir(attachment_paths)
+			if os.path.exists(attachment_paths):
+				files = listdir(attachment_paths)
+			else:
+				files = []
 			for f in files:
 				attachment = open(path.join(attachment_paths, f), 'rb')
 				part = MIMEBase('application', 'octet-stream')
@@ -257,7 +262,10 @@ def send_email(	request, call_on,
 				format(workshop_date)
 			msg = EmailMultiAlternatives(subject, message, SENDER_EMAIL, [other_email])
 			attachment_paths = path.join(settings.MEDIA_ROOT, workshop_title.replace(" ","_"))
-			files = listdir(attachment_paths)
+			if os.path.exists(attachment_paths):
+				files = listdir(attachment_paths)
+			else:
+				files = []
 			for f in files:
 				attachment = open(path.join(attachment_paths, f), 'rb')
 				part = MIMEBase('application', 'octet-stream')
@@ -392,7 +400,7 @@ def send_email(	request, call_on,
 					workshop_date, new_workshop_date))
 
 			logging.info("Workshop Date Changed Done by {0} from {1} to {2}"
-						.format(request.user.email, 
+						.format(request.user.email,
 						new_workshop_date, workshop_date))
 			try:
 				send_mail(
@@ -419,7 +427,7 @@ def send_email(	request, call_on,
 
 			try:
 				send_mail(
-					"FOSSEE Python Workshop Date Changed", 
+					"FOSSEE Python Workshop Date Changed",
 					message, SENDER_EMAIL,
 					[other_email], fail_silently=True
 					)

@@ -14,20 +14,19 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import url, include
+from django.conf.urls.static import static
 from django.contrib import admin
-from workshop_app import views
-#from chatterbot.ext.django_chatterbot import urls as chatterbot_urls
-import django
-
-js_info_dict = {
-    'packages': ('recurrence', ),
-}
+from workshop_portal import views
+from django.conf import settings
 
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^', include('workshop_app.urls')),
-    url(r'^', include('workshop_app.urls_password_reset')),
-    url(r'^', include('statistics_app.urls')),
-
+    url(r'^$', views.index),
+    url(r'^workshop/', include('workshop_app.urls')),
+    url(r'^reset/', include('django.contrib.auth.urls')),
+    url(r'^page/', include('cms.urls')),
+    url(r'^statistics/', include('statistics_app.urls')),
 ]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
