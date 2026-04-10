@@ -136,7 +136,7 @@ export default function Register() {
 
       if (res.ok) {
         // Django returns HTML (activation page) on success
-        window.location.href = '/workshop/activate_user/'
+        window.location.href = '/activate?status=pending'
       } else {
         // Try to parse JSON error response, fallback to text
         const contentType = res.headers.get('content-type')
