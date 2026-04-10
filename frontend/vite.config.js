@@ -7,6 +7,7 @@ export default defineConfig({
     proxy: {
       '/workshop': 'http://localhost:8000',
       '/reset': 'http://localhost:8000',
+      '/statistics': 'http://localhost:8000',
     }
   }
 })

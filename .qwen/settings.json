@@ -9,7 +9,10 @@
       "Bash(pkill *)",
       "Bash(npm create *)",
       "Bash(npm install)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(python *)",
+      "Bash(curl *)",
+      "Bash(kill *)"
     ]
   },
   "$version": 3

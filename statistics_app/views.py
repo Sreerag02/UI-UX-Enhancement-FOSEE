@@ -11,7 +11,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils import timezone
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 
 # Local Imports
 from workshop_app.models import (
@@ -129,3 +129,99 @@ def team_stats(request, team_id=None):
         {'team_labels': team_labels, "ws_count": ws_count, 'all_teams': teams,
          'team_id': team.id}
     )
+
+
+def workshop_public_stats_api(request):
+    """JSON API endpoint for workshop statistics data"""
+    user = request.user
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
+    state = request.GET.get('state')
+    workshoptype = request.GET.get('workshop_type')
+    show_workshops = request.GET.get('show_workshops')
+    sort = request.GET.get('sort', 'date')
+    download = request.GET.get('download')
+    page = request.GET.get('page', 1)
+
+    # Build workshop queryset
+    if from_date and to_date:
+        workshops = Workshop.objects.filter(
+            date__range=(from_date, to_date), status=1
+        ).order_by(sort)
+        if state:
+            workshops = workshops.filter(coordinator__profile__state=state)
+        if workshoptype:
+            workshops = workshops.filter(workshop_type_id=workshoptype)
+    else:
+        today = timezone.now()
+        upto = today + dt.timedelta(days=15)
+        workshops = Workshop.objects.filter(
+            date__range=(today, upto), status=1
+        ).order_by("date")
+
+    # Filter by user's workshops if requested
+    if show_workshops and user.is_authenticated:
+        if is_instructor(user):
+            workshops = workshops.filter(instructor_id=user.id)
+        else:
+            workshops = workshops.filter(coordinator_id=user.id)
+
+    # Handle CSV download
+    if download:
+        data = workshops.values(
+            "workshop_type__name", "coordinator__first_name",
+            "coordinator__last_name", "instructor__first_name",
+            "instructor__last_name", "coordinator__profile__state",
+            "date", "status"
+        )
+        df = pd.DataFrame(list(data))
+        if not df.empty:
+            df.status.replace(
+                [0, 1, 2], ['Pending', 'Success', 'Reject'], inplace=True
+            )
+            codes, states_map = list(zip(*states))
+            df.coordinator__profile__state.replace(
+                codes, states_map, inplace=True
+            )
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename=statistics.csv'
+            df.to_csv(response, index=False)
+            return response
+        else:
+            return JsonResponse({'error': 'No data found'}, status=404)
+
+    # Get chart data
+    ws_states, ws_count = Workshop.objects.get_workshops_by_state(workshops)
+    ws_type, ws_type_count = Workshop.objects.get_workshops_by_type(workshops)
+
+    # Paginate
+    paginator = Paginator(workshops, 30)
+    workshops_page = paginator.get_page(page)
+
+    # Serialize workshop data
+    workshops_data = []
+    for workshop in workshops_page:
+        workshops_data.append({
+            'id': workshop.id,
+            'coordinator_name': f"{workshop.coordinator.first_name} {workshop.coordinator.last_name}",
+            'institute': str(workshop.coordinator.profile.institute) if hasattr(workshop.coordinator, 'profile') else '',
+            'instructor_name': f"{workshop.instructor.first_name} {workshop.instructor.last_name}",
+            'workshop_type': workshop.workshop_type.name,
+            'date': workshop.date.strftime('%Y-%m-%d'),
+        })
+
+    return JsonResponse({
+        'workshops': workshops_data,
+        'pagination': {
+            'current': workshops_page.number,
+            'total': paginator.num_pages,
+            'has_next': workshops_page.has_next(),
+            'has_prev': workshops_page.has_previous(),
+        },
+        'chart_data': {
+            'states': ws_states,
+            'state_counts': ws_count,
+            'types': ws_type,
+            'type_counts': ws_type_count,
+        }
+    })
